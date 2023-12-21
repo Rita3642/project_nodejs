@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Task List</title>
+  </head>
+  <body>
+    <!-- <h1>Hello World</h1> -->
+    <h2>Tasks</h2>
+
+    <ul id="tasks"></ul>
+
+    <script>
+      fetch("/tasks")
+        .then((response) => response.json())
+        .then((data) => {
+          const tasksListElement = document.getElementById("tasks");
+
+          data.tasks.forEach((task) => {
+            const listItem = document.createElement("li");
+            listItem.textContent = `
+                ${task.description} - ${task.complete} - id: ${task.id}`;
+            tasksListElement.appendChild(listItem);
+          });
+        })
+        .catch((error) => console.error("Error fetching tasks:", error));
+    </script>
+  </body>
+</html>
