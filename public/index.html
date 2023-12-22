@@ -1,30 +1,60 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Task List</title>
+    <title>To Do List</title>
+    <link rel="stylesheet" href="css/tasks.css" />
   </head>
   <body>
-    <!-- <h1>Hello World</h1> -->
-    <h2>Tasks</h2>
+    <div class="todo-container">
+      <div class="todo-header">
+        <h1>To Do List</h1>
+      </div>
 
-    <ul id="tasks"></ul>
+      <ul id="todo-list">
+        <li class="add-task">
+          <span class="span_add">Create New Task</span>
+          <button>+</button>
+        </li>        
+      </ul>
+    </div>
 
     <script>
       fetch("/tasks")
-        .then((response) => response.json())
-        .then((data) => {
-          const tasksListElement = document.getElementById("tasks");
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(
+              `Error: ${response.status} - ${response.statusText}`
+            );
+          }
+          return response.json();
+        })
+        .then((tasks) => {
+          const taskList = document.getElementById("todo-list");
 
-          data.tasks.forEach((task) => {
+          tasks.forEach((task) => {
             const listItem = document.createElement("li");
-            listItem.textContent = `
-                ${task.description} - ${task.complete} - id: ${task.id}`;
-            tasksListElement.appendChild(listItem);
+            listItem.classList.add('todo-item');
+
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            // checkbox.checked = task.completed;
+
+
+            const span = document.createElement("span");
+            span.textContent = task.description;
+
+
+            listItem.appendChild(checkbox);
+            listItem.appendChild(span);
+
+            taskList.appendChild(listItem);
           });
         })
-        .catch((error) => console.error("Error fetching tasks:", error));
+        .catch((error) => {
+          console.error("Error Message:", error.message);
+        });
     </script>
   </body>
 </html>
