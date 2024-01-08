@@ -1,100 +1,64 @@
 const express = require("express");
 const app = express();
 const port = 3000;
+const fs = require('fs');
 const path = require('path');
+const bodyParser = require('body-parser');
 
 app.use(express.static("public"));
 app.use(express.json());
-// app.use(express.static(path.join(__dirname, 'public')));
+app.use(bodyParser.urlencoded({ extended: true }));
 
+let taskIdCounter = 0;
 
-let tasks = [
-  { id: 1, description: "hacer las compras", complete: true },
-  { id: 2, description: "estudiar NodeJs", complete: false },
-];
+function generateSequentialId() {
+  return taskIdCounter++;
+}
+
+let tasks = [];
 
 app.get("/", (req, res) => {
-  // res.sendFile(__dirname + "/public/index.html");
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
-
+});
+app.get("/all-tasks", (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'allTasks.html'));
 });
 
 app.get("/tasks", (req, res) => {
-  res.json(tasks)
+  const tasks = readTasksFromJSON();
+  console.log(tasks)
+  res.json({ tasks });
+});
+
+app.post("/tasks", (req, res) => {
+  const tasks = readTasksFromJSON();
+
+  const newTask = {
+    id: generateSequentialId(),
+    description: req.body.modalDescription,
+    completed: false,
+  }
+
+  tasks.unshift(newTask)
+  writeTasksToJSON(tasks);
+
+  return res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
 app.listen(port, () => {
   console.log(`This server listens on http://localhost:${port}`);
 });
 
+function readTasksFromJSON() {
+  try {
+    const data = fs.readFileSync('tasks.json', 'utf-8');
+    return JSON.parse(data);
+  } catch (error) {
+    return [];
+  }
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// app.put("/tasks/:id", (req, res) => {
-//   const taskId = parseInt(req.params.id);
-//   const task = tasks.find((task) => task.id === taskId);
-
-//   if (task) {
-//     task.complete = true;
-//     res.json(task);
-//   } else {
-//     res.status(404).json({ error: "Task no found." });
-//   }
-// });
-
-// app.delete("/tasks/:id", (req, res) => {
-//   const taskId = parseInt(req.params.id);
-//   tasks = tasks.filter((task) => task.id !== taskId);
-//   res.json({ message: "Task delete successfully." });
-// });
+function writeTasksToJSON(tasks) {
+  const data = JSON.stringify(tasks, null, 2);
+  fs.writeFileSync('tasks.json', data, 'utf-8');
+}

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,20 +7,63 @@
     <link rel="stylesheet" href="css/tasks.css" />
   </head>
   <body>
+    <!-- Tasks -->
+    <div class="todo-header">
+      <h1>To Do List</h1>
+    </div>
     <div class="todo-container">
-      <div class="todo-header">
-        <h1>To Do List</h1>
-      </div>
+
 
       <ul id="todo-list">
         <li class="add-task">
           <span class="span_add">Create New Task</span>
-          <button>+</button>
-        </li>        
+          <button id="add">+</button>
+        </li>
       </ul>
+      <a href="/all-tasks" class="moreTasks">More Tasks</a>
+
+    </div>
+
+    <!-- Modal -->
+    <div id="taskModal" class="modal" style="display: none">
+      <div class="modal-content">
+        <div class="headModal">
+          <span class="close" onclick="">&times;</span>
+          <h2 class="modalh2">New Task</h2>
+        </div>
+
+        <hr class="hr"/>
+
+        <form id="taskForm" action="/tasks" method="post">
+          <label for="modalDescription" class="modalDescriptionLabel">
+            Description:
+          </label>
+          <input
+            type="text"
+            placeholder="Task Description"
+            id="modalDescription"
+            name="modalDescription"
+            required
+          />
+          <button type="submit" class="modalbtn">Add Task</button>
+        </form>
+      </div>
     </div>
 
     <script>
+      // Abrir y Cerra el Modal
+      const btn = document.getElementById("add");
+      const modal = document.getElementById("taskModal");
+      const close = document.querySelector(".close");
+
+      btn.addEventListener("click", () => {
+        modal.style.display = "block";
+      });
+      close.addEventListener("click", () => {
+        modal.style.display = "none";
+      });
+
+      // Mostrar todas las task
       fetch("/tasks")
         .then((response) => {
           if (!response.ok) {
@@ -30,26 +73,49 @@
           }
           return response.json();
         })
-        .then((tasks) => {
+        .then((data) => { 
+          const tasks = data.tasks  || [];
           const taskList = document.getElementById("todo-list");
 
+          const limit = 4;
+          let count = 0;
+
           tasks.forEach((task) => {
-            const listItem = document.createElement("li");
-            listItem.classList.add('todo-item');
+              if (count < limit) {
+                const listItem = document.createElement("li");
+                listItem.classList.add("todo-item");
 
-            const checkbox = document.createElement("input");
-            checkbox.type = "checkbox";
-            // checkbox.checked = task.completed;
+                const span = document.createElement("span");
+                span.textContent = task.description;
 
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.checked = localStorage.getItem(task.id) === 'true';
 
-            const span = document.createElement("span");
-            span.textContent = task.description;
+                task.completed = checkbox.checked;
 
+                if (task.completed) {
+                  listItem.classList.add('completed');
+                  checkbox.disabled = true; 
+                }
 
-            listItem.appendChild(checkbox);
-            listItem.appendChild(span);
+                checkbox.addEventListener('change', function(){
+                  task.completed = checkbox.checked;
 
-            taskList.appendChild(listItem);
+                  listItem.classList.toggle('completed', task.completed);
+                  checkbox.disabled = true;
+
+                  checkbox.disabled = task.completed;
+                  localStorage.setItem(task.id, checkbox.checked);
+                })
+
+                listItem.appendChild(checkbox);
+                listItem.appendChild(span);
+
+                taskList.appendChild(listItem);
+
+                count++;
+              }
           });
         })
         .catch((error) => {

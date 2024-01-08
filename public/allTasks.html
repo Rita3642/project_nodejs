@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="css/tasks.css" />
+</head>
+<body>
+    <div class="todo-container">
+        <h1 class="todo-header">All Tasks</h1>
+        <ul id="todo-list"></ul>
+    </div>
+
+    <script>
+        fetch("/tasks")
+            .then((response) => {
+            if (!response.ok) {
+                throw new Error(
+                `Error: ${response.status} - ${response.statusText}`
+                );
+            }
+            return response.json();
+            })
+            .then((data) => { 
+            const tasks = data.tasks  || [];
+            const taskList = document.getElementById("todo-list");
+
+            tasks.forEach((task) => {
+                const listItem = document.createElement("li");
+                listItem.classList.add("todo-item");
+
+                const span = document.createElement("span");
+                span.textContent = task.description;
+
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.checked = localStorage.getItem(task.id) === 'true';
+
+                task.completed = checkbox.checked;
+
+                if (task.completed) {
+                listItem.classList.add('completed'); 
+                checkbox.disabled = true; 
+                }
+
+                checkbox.addEventListener('change', function(){
+                task.completed = checkbox.checked;
+
+                listItem.classList.toggle('completed', task.completed);
+                checkbox.disabled = true;
+
+                checkbox.disabled = task.completed;
+                localStorage.setItem(task.id, checkbox.checked);
+                })
+
+                listItem.appendChild(checkbox);
+                listItem.appendChild(span);
+
+                taskList.appendChild(listItem);
+            });
+            })
+        .catch((error) => {
+          console.error("Error Message:", error.message);
+        });
+    </script>
+</body>
+</html>
